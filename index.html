@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GTU Examiner Bill</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+<body>
+
+    <div id="login-screen" class="login-container">
+        <div class="login-box">
+            <div class="login-logo">🎓</div>
+            <h2>SSEC Examiner Billing Portal</h2>
+            <p>Secure Examiner Billing System</p>
+            <div class="input-group">
+                <label>Select Department</label>
+                <select id="login-dept">
+                    <option value="IT Department">🌐 IT Department</option>
+                    <option value="Civil Engineering">🏗️ Civil Engineering</option>
+                    <option value="Mechanical Engineering">⚙️ Mechanical Engineering</option>
+                    <option value="Electrical Engineering">⚡ Electrical Engineering</option>
+                    <option value="IT Department">🌐 IT Department</option>
+                    <option value="Admin Office">🏢 Admin Office</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <label>Access Password</label>
+                <input type="password" id="login-pass" placeholder="Enter password (1234)" value="1234">
+            </div>
+            <button type="button" class="btn-login" onclick="doLogin()">Secure Login ➔</button>
+        </div>
+    </div>
+
+    <div id="app-screen" style="display: none;">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <h2>🏛 SSEC Portal</h2>
+                <span id="display-dept-name" class="dept-badge">Department</span>
+            </div>
+            <div class="nav-links">
+                <button id="nav-form" class="active" onclick="switchTab('form')">📄 Generate Bill</button>
+                <button id="nav-history" onclick="switchTab('history')">📜 History Logs</button>
+            </div>
+            <button class="logout-btn" onclick="doLogout()">🚪 Logout</button>
+        </div>
+
+        <div class="main-content">
+            <div id="form" class="section active">
+                <div class="page-header">
+                    <h2>Create New Examiner Bill</h2>
+                    <p class="subtitle">Fill the details below to generate a 100% original GTU format PDF.</p>
+                </div>
+                <form id="inputForm" class="pro-form">
+                    
+                    <div class="form-card">
+                        <h3><span class="icon">👤</span> Basic Information</h3>
+                        <div class="grid-3">
+                            <div class="highlight-box">
+                                <label>PAN No (Auto-fill):</label>
+                                <input type="text" id="i_pan" placeholder="Enter PAN & Click outside">
+                            </div>
+                            <div><label>Full Name:</label><input type="text" id="i_name" required></div>
+                            <div><label>Date:</label><input type="date" id="i_date" required></div>
+                            <div><label>Designation:</label><input type="text" id="i_desig" required></div>
+                            <div><label>Basic Pay (Old):</label><input type="text" id="i_basic"></div>
+                            <div><label>Aadhar No:</label><input type="text" id="i_aadhar"></div>
+                            <div><label>Phone No:</label><input type="text" id="i_phone"></div>
+                            <div><label>Email ID:</label><input type="text" id="i_email"></div>
+                            <div style="grid-column: span 3;"><label>Name of Institute & Address:</label><input type="text" id="i_inst"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <h3><span class="icon">🚗</span> Journey Details</h3>
+                        <div class="grid-2">
+                            <div><label>Purpose of Journey:</label><input type="text" id="i_purpose" placeholder="External Practical Viva of..."></div>
+                            <div><label>B.E. Semester:</label><input type="text" id="i_sem"></div>
+                            <div style="grid-column: span 2;"><label>Reference Letter No (If Any):</label><input type="text" id="i_ref" placeholder="--------"></div>
+                        </div>
+                        <div class="ta-header-wrapper">
+                            <label>(A) T.A. Details (Journeys)</label>
+                            <button type="button" class="btn-add" onclick="addTaRow()">+ Add Row</button>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="ta-input-table">
+                                <thead>
+                                    <tr><th>Date</th><th>From</th><th>To</th><th>KM</th><th>Mode</th><th>Class</th><th>Fare (Rs)</th><th>Toll (Rs)</th><th>Remark</th><th>Action</th></tr>
+                                </thead>
+                                <tbody id="ta-input-body"></tbody>
+                            </table>
+                            <small class="help-text">* Toll will be automatically added as a NEW ROW below the journey in the PDF.</small>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <h3><span class="icon">💰</span> Allowances & Honorarium</h3>
+                        <div class="grid-3-cards">
+                            <div class="inner-card">
+                                <label>(B) D.A. Details:</label>
+                                <div class="flex-inputs">
+                                    <input type="number" id="i_da_days" placeholder="Days" oninput="calcTotals()">
+                                    <span>×</span>
+                                    <input type="number" id="i_da_rate" placeholder="Rate" oninput="calcTotals()">
+                                </div>
+                                <input type="number" id="i_da_total" placeholder="Total D.A." readonly class="readonly-total">
+                            </div>
+                            
+                            <div class="inner-card highlight-box">
+                                <label>(C) Honorarium:</label>
+                                <div class="flex-inputs">
+                                    <input type="number" id="i_hon_days" placeholder="Days" oninput="calcTotals()">
+                                    <span>×</span>
+                                    <input type="number" id="i_hon_rate" placeholder="Rate" oninput="calcTotals()">
+                                </div>
+                                <input type="number" id="i_hon_total" placeholder="Total Hon." readonly class="readonly-total" style="margin-bottom: 8px;">
+                                <input type="number" id="i_students" placeholder="Total Students (e.g., 10)" class="highlight-input">
+                            </div>
+                            
+                            <div class="inner-card">
+                                <label>(D) Accommodation:</label>
+                                <div class="flex-inputs">
+                                    <input type="number" id="i_acc_days" placeholder="Days" oninput="calcTotals()">
+                                    <span>×</span>
+                                    <input type="number" id="i_acc_rate" placeholder="Rate" oninput="calcTotals()">
+                                </div>
+                                <input type="number" id="i_acc_total" placeholder="Total Acc." readonly class="readonly-total">
+                            </div>
+                        </div>
+
+                        <div class="gross-total-box">
+                            <span>Gross Total (Auto Calculated):</span>
+                            <h2 class="gross-text">₹ <span id="display_gross">0</span></h2>
+                        </div>
+                    </div>
+
+                    <div class="form-card">
+                        <h3><span class="icon">🏦</span> Bank Information</h3>
+                        <div class="grid-3">
+                            <div><label>Bank Name:</label><input type="text" id="i_b_name"></div>
+                            <div><label>Branch Code:</label><input type="text" id="i_b_branch"></div>
+                            <div><label>A/C Type (SB/CB):</label><input type="text" id="i_b_type"></div>
+                            <div style="grid-column: span 2;"><label>A/c No (Full digits):</label><input type="text" id="i_b_acc"></div>
+                            <div><label>IFSC Code:</label><input type="text" id="i_b_ifsc"></div>
+                        </div>
+                    </div>
+
+                    <button type="button" class="btn-generate" onclick="generateBill()">📥 Generate Exact Original PDF</button>
+                </form>
+            </div>
+
+            <div id="history" class="section">
+                <div class="page-header">
+                    <h2>Bill History Logs</h2>
+                    <p class="subtitle">Track all generated bills from this browser.</p>
+                </div>
+                <input type="text" id="searchInput" class="search-bar" placeholder="🔍 Search by Examiner Name..." onkeyup="loadHistory()">
+                <div class="table-responsive">
+                    <table class="history-table">
+                        <thead><tr><th>Date</th><th>Examiner Name</th><th>Total Amount</th><th>Department</th></tr></thead>
+                        <tbody id="historyBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div id="pdfWrapper" style="display: none; width: 794px; background: white; color: black;">
+            <table class="pdf-table w-100">
+                <tr>
+                    <td colspan="8" class="text-center bold" style="padding: 6px;">
+                        <div style="font-size: 13pt;">GUJARAT TECHNOLOGICAL UNIVERSITY, AHMEDABAD</div>
+                        <div style="font-size: 8.5pt; margin-top: 2px;">BILL FOR REIMBURSEMENT OF TRAVELLING ALLOWANCE & D.A./HONORARIUM/ACCOMODATION</div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="valign-top w-55">
+                        <b>FULL NAME :</b> <span id="o_name"></span><br>
+                        <b>DESIGNATION:</b> <span id="o_desig"></span><br>
+                        <b>NAME OF INSTITUTE & ADDRESS:</b><br><span id="o_inst"></span><br><br>
+                        <b>PAN NO:</b> <span id="o_pan"></span><br>
+                        <b>PHONE NO:</b> <span id="o_phone"></span>
+                    </td>
+                    <td colspan="4" class="valign-top w-45">
+                        <b>DATE:</b> <span id="o_date"></span><br>
+                        <b>BASIC PAY (OLD):</b> <span id="o_basic"></span><br><br><br>
+                        <b>AADHAR NO:</b> <span id="o_aadhar"></span><br>
+                        <b>EMAIL ID:</b> <span id="o_email"></span>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="8">
+                        <div class="flex-between">
+                            <span><b>PURPOSE OF JOURNEY:</b> External Practical Viva of <span id="o_purpose"></span></span>
+                            <span><b>(B.E. Semester <span id="o_sem" class="w-30px text-center inline-b"></span> )</b></span>
+                        </div>
+                        <div><b>REFERENCE LETTER NO. (IF ANY):</b> <span id="o_ref"></span></div>
+                    </td>
+                </tr>
+                
+                <tr><td colspan="8" class="bold">(A) T. A.:</td></tr>
+                <tr class="text-center bold">
+                    <td class="w-10">Date of<br>journey</td>
+                    <td class="w-15">From</td>
+                    <td class="w-15">To</td>
+                    <td class="w-12">Distance<br>kilometer</td>
+                    <td class="w-20">Mode of journey<br>(i.e. Bus, Car, Rail, Air)</td>
+                    <td class="w-10">Class</td>
+                    <td class="w-10">Fare paid</td>
+                    <td class="w-8">Remark</td>
+                </tr>
+                
+                <tbody id="o_ta_body"></tbody>
+                
+                <tr>
+                    <td colspan="6" class="text-right bold">Total Rs.(A)</td>
+                    <td id="o_ta_total" class="text-center bold"></td>
+                    <td></td>
+                </tr>
+                
+                <tr class="text-center bold">
+                    <td colspan="4" class="no-border-b text-left"></td>
+                    <td>No. of days</td><td>Rate/ Day</td><td>Total Rs.</td><td></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="no-border-tb bold text-left">(B) D.A.: (If applicable)</td>
+                    <td id="o_da_days" class="text-center"></td>
+                    <td id="o_da_rate" class="text-center"></td>
+                    <td id="o_da_total_d" class="text-center"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="no-border-t"></td>
+                    <td colspan="2" class="text-right bold">Total Rs.(B)</td>
+                    <td id="o_da_total_2" class="text-center bold"></td>
+                    <td></td>
+                </tr>
+
+                <tr class="text-center bold">
+                    <td colspan="4" class="no-border-b text-left"></td>
+                    <td>No. of days</td><td>Rate/ Day</td><td>Total Rs.</td><td></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="no-border-tb bold text-left">(C) Honorarium:(If Prior approval is taken & applicable)</td>
+                    <td id="o_hon_days" class="text-center"></td>
+                    <td id="o_hon_rate" class="text-center"></td>
+                    <td id="o_hon_total_d" class="text-center"></td>
+                    <td class="text-center bold" style="font-size: 8.5pt;">Total Students: <span id="o_students" style="font-weight:normal;"></span></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="no-border-t"></td>
+                    <td colspan="2" class="text-right bold">Total Rs. (C)</td>
+                    <td id="o_hon_total_2" class="text-center bold"></td>
+                    <td></td>
+                </tr>
+
+                <tr class="text-center bold">
+                    <td colspan="4" class="no-border-b text-left"></td>
+                    <td>No. of days</td><td>Rate/ Day</td><td>Total Rs.</td><td></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="no-border-tb bold text-left">(D) Accommodation: (If applicable)</td>
+                    <td id="o_acc_days" class="text-center"></td>
+                    <td id="o_acc_rate" class="text-center"></td>
+                    <td id="o_acc_total_d" class="text-center"></td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td colspan="4" class="no-border-t"></td>
+                    <td colspan="2" class="text-right bold">Total Rs.(D)</td>
+                    <td id="o_acc_total_2" class="text-center bold"></td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td colspan="6" class="text-center bold">Gross Total (A)+(B)+(C)+(D)</td>
+                    <td id="o_gross_total" class="text-center bold"></td>
+                    <td></td>
+                </tr>
+
+                <tr>
+                    <td colspan="8" style="padding: 4px 6px; font-size: 8pt; line-height: 1.3;">
+                        <b>This is to Certify that: -</b><br>
+                        &#9744; I have travelled by Railway <span class="fill-line" style="width: 60px;"></span> class/ Bus-Luxury/ordinary. (Attach copy of Rail Ticket if travelled by AC & upper class or Luxury Bus.)<br>
+                        &#9744; I have travelled by my own car with vehicle No. is <span class="fill-line" style="width: 120px;"></span> (Attach Copy of R/C book.)<br>
+                        &#9744; I have travelled as per requisite to participate in event, seminar, etc. and fare claimed hereby is actual and admissible.<br>
+                        &#9744; I confirm that this amount is not claimed elsewhere and if it is found at any stage that above claim/part of the claim paid/received to me is contra bonos mores due to either side by mistake; I undertake to refund same to the University.<br>
+                        &#9744; I ensure that I had received Rs.<span class="fill-line" style="width: 80px;"></span>as Advance for this TA and DA/HONORARIUM and deposited remaining amount Rs.<span class="fill-line" style="width: 80px;"></span>with Receipt no.<span class="fill-line" style="width: 80px;"></span>dated<span class="fill-line" style="width: 80px;"></span>to the university.
+                    </td>
+                </tr>
+
+                <tr>
+                    <td colspan="8" class="bold" style="padding: 5px 6px;">I HEREBY DECLARE THAT THE FACTS/DETAILS PROVIDED ABOVE BY ME ARE TRUE AND CORRECT.</td>
+                </tr>
+
+                <tr>
+                    <td colspan="8" style="padding: 10px 15px; border-bottom: none; line-height: 1.5;">
+                        <div class="text-right bold" style="margin-bottom: 25px; padding-right: 40px;">
+                            <div style="display: inline-block; text-align: left; width: 150px;">
+                                Signature:<br><br><br>
+                                Name: <span id="o_sign_name" style="font-weight:normal;"></span>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            Passed for payment Total Rs. <span id="o_pass_rs" class="fill-line bold" style="width:70px;"></span>(Rupees in words <span id="o_pass_words" class="fill-line bold" style="width:300px;"></span> only).<br>
+                            Journey mention above is essential to conduct duties at Gujarat Technological University
+                        </div>
+                        
+                        <table class="w-100 bold text-center" style="margin-bottom: 15px; border: none;">
+                            <tr><td style="border:none;">DEALING PERSON</td><td style="border:none;">H.O.D/O.S.D.</td><td style="border:none;">C.A.O</td><td style="border:none;">I. A.</td><td style="border:none;">REGISTRAR</td></tr>
+                        </table>
+
+                        <div class="text-center bold" style="margin-bottom: 12px;">RECEIPT</div>
+                        
+                        <div style="margin-bottom: 15px;">
+                            Received Rs. <span id="o_rec_rs" class="fill-line bold" style="width:70px;"></span> (Rupees in words <span id="o_rec_words" class="fill-line bold" style="width:300px;"></span> only).<br>
+                            From Registrar, Gujarat Technological University, Ahmedabad towards TA and DA/Honorarium etc.
+                        </div>
+
+                        <div class="text-center bold" style="margin-bottom: 12px;">Bank information of receiver for Electronic fund transfer (attach copy of cancelled cheque)</div>
+
+                        <div>
+                            <b>Bank Name:</b> <span id="o_b_name" class="fill-line" style="width:130px;"></span> <b>& Branch Code:</b> <span id="o_b_branch" class="fill-line" style="width:130px;"></span> <b>A/C Type (SB/CB) :</b> <span id="o_b_type" class="fill-line" style="width:100px;"></span><br>
+                            <b>A/c No.(Full digits) :</b> <span id="o_b_acc" class="fill-line" style="width:180px;"></span> <b>IFSC Code:</b> <span id="o_b_ifsc" class="fill-line" style="width:150px;"></span><br>
+                            The above information provided by me is correct.
+                        </div>
+                        
+                        <div class="text-right bold" style="margin-top: 25px; padding-right: 40px;">
+                            <div style="display: inline-block; text-align: left; width: 150px;">
+                                Signature:<br><br><br>
+                                Name: <span id="o_sign_name_2" style="font-weight:normal;"></span>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
